@@ -6,6 +6,7 @@ from scipy.sparse.linalg.eigen.arpack import eigsh
 import sys
 import tensorflow as tf
 import math
+import os
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -187,6 +188,7 @@ def ifunc(KG):
 
 
 def get_weighted_adj(e, KG):
+
     r2f = func(KG)
     r2if = ifunc(KG)
     M = {}
@@ -205,9 +207,11 @@ def get_weighted_adj(e, KG):
     col = []
     data = []
     for key in M:
+        print(key)
         row.append(key[1])
         col.append(key[0])
         data.append(M[key])
+    print(e)
     return sp.coo_matrix((data, (row, col)), shape=(e, e))
 
 
@@ -215,7 +219,7 @@ def get_ae_input(attr):
     return sparse_to_tuple(sp.coo_matrix(attr))
 
 
-def load_data(dataset_str):
+def load_data(dataset_str, ae=False):
     names = [['ent_ids_1', 'ent_ids_2'], ['training_attrs_1', 'training_attrs_2'], ['triples_1', 'triples_2'], ['ref_ent_ids']]
     for fns in names:
         for i in range(len(fns)):
@@ -230,8 +234,39 @@ def load_data(dataset_str):
     test = ILL[illL // 10 * FLAGS.seed:]
     KG = loadfile(Ts[0], 3) + loadfile(Ts[1], 3)
     ent2id = get_ent2id([Es[0], Es[1]])
-    attr = loadattr([As[0], As[1]], e, ent2id)
-    ae_input = get_ae_input(attr)
+    if ae:
+        attr = loadattr([As[0], As[1]], e, ent2id)
+        ae_input = get_ae_input(attr)
+    else:
+        ae_input=None
     adj = get_weighted_adj(e, KG) # nx.adjacency_matrix(nx.from_dict_of_lists(get_dic_list(e, KG)))
     return adj, ae_input, train, test
 
+
+def load_data_fixed_testset(dataset_str, ae=False):
+    names = [['ent_ids_1', 'ent_ids_2'], ['training_attrs_1', 'training_attrs_2'], ['triples_1', 'triples_2'], ['ref_ent_ids']]
+    for fns in names:
+        for i in range(len(fns)):
+            fns[i] = 'data/'+dataset_str+'/'+fns[i]
+    Es, As, Ts, ill = names
+    ill = ill[0]
+    e = len(set(loadfile(Es[0], 1)) | set(loadfile(Es[1], 1)))
+    ILL = loadfile(ill, 2)
+    illL = len(ILL)
+    np.random.shuffle(ILL)
+    train = np.array(ILL[:illL // 10 * FLAGS.seed])
+    test = load_test_set(dataset_str)
+    KG = loadfile(Ts[0], 3) + loadfile(Ts[1], 3)
+    ent2id = get_ent2id([Es[0], Es[1]])
+    if ae:
+        attr = loadattr([As[0], As[1]], e, ent2id)
+        ae_input = get_ae_input(attr)
+    else:
+        ae_input=None
+    adj = get_weighted_adj(e, KG) # nx.adjacency_matrix(nx.from_dict_of_lists(get_dic_list(e, KG)))
+    return adj, ae_input, train, test
+
+
+def load_test_set(dataset_str):
+    test = loadfile(os.path.join('data', dataset_str, 'test_pairs.txt'), 2)
+    return np.array(test)
