@@ -207,11 +207,11 @@ def get_weighted_adj(e, KG):
     col = []
     data = []
     for key in M:
-        print(key)
+
         row.append(key[1])
         col.append(key[0])
         data.append(M[key])
-    print(e)
+
     return sp.coo_matrix((data, (row, col)), shape=(e, e))
 
 
@@ -268,5 +268,5 @@ def load_data_fixed_testset(dataset_str, ae=False):
 
 
 def load_test_set(dataset_str):
-    test = loadfile(os.path.join('data', dataset_str, 'test_pairs.txt'), 2)
+    test = loadfile(os.path.join('data', dataset_str, 'test_pairs_{}.txt'.format(dataset_str)), 2)
     return np.array(test)
