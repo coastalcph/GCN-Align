@@ -243,11 +243,11 @@ def load_data(dataset_str, ae=False):
     return adj, ae_input, train, test
 
 
-def load_data_fixed_testset(dataset_str, ae=False):
+def load_data_fixed_testset(dataset_str, in_dir='', ae=False):
     names = [['ent_ids_1', 'ent_ids_2'], ['training_attrs_1', 'training_attrs_2'], ['triples_1', 'triples_2'], ['ref_ent_ids']]
     for fns in names:
         for i in range(len(fns)):
-            fns[i] = 'data/'+dataset_str+'/'+fns[i]
+            fns[i] = os.path.join(in_dir, dataset_str, fns[i])
     Es, As, Ts, ill = names
     ill = ill[0]
     e = len(set(loadfile(Es[0], 1)) | set(loadfile(Es[1], 1)))

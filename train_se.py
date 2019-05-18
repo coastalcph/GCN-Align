@@ -17,6 +17,7 @@ tf.set_random_seed(seed)
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('lang', 'wiki_et_en', 'Dataset string.')  # 'zh_en', 'ja_en', 'fr_en'
+flags.DEFINE_string('in_dir', '', 'Input directory.')
 flags.DEFINE_float('learning_rate', 20, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 100, 'Number of epochs to train.')
 flags.DEFINE_float('dropout', 0., 'Dropout rate (1 - keep probability).')
@@ -28,7 +29,7 @@ flags.DEFINE_integer('ae_dim', 100, 'Dimension for AE.')
 flags.DEFINE_integer('seed', 3, 'Proportion of seeds, 3 means 30%')
 
 # Load data
-adj, _, train, test = load_data(FLAGS.lang, ae=False)
+adj, _, train, test = load_data_fixed_testset(FLAGS.lang, FLAGS.in_dir, ae=False)
 
 # Some preprocessing
 support = [preprocess_adj(adj)]
