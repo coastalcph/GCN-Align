@@ -270,5 +270,5 @@ def load_data_fixed_testset(dataset_str, in_dir='', ae=False):
 def load_test_set(dataset_str):
     src = dataset_str.split('_')[-1]
     trg = dataset_str.split('_')[-2]
-    test = loadfile(os.path.join('data', dataset_str, 'test_pairs_{}_{}.txt'.format(dataset_str, src, trg)), 2)
+    test = loadfile(os.path.join('data', dataset_str, 'test_pairs_{}_{}.txt'.format( src, trg)), 2)
     return np.array(test)
