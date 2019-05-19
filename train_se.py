@@ -137,7 +137,7 @@ def export_embs(lang, embs, idx2word):
 def get_idx2label(fname):
     with codecs.open(fname, 'r', 'utf-8') as f:
         lines = f.readlines()
-    idx2label = {int(line.strip().split('\t')[0]): line.strip().split('\t')[1] for line in lines}
+    idx2label = {int(line.strip().split('\t')[0]): line.strip().split('\t')[1] for line in lines if len(line.split()) > 1}
     return idx2label
 
 idx2word_src = get_idx2label(FLAGS.labelfile_src)
