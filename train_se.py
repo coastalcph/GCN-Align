@@ -30,11 +30,13 @@ flags.DEFINE_integer('se_dim', 200, 'Dimension for SE.')
 flags.DEFINE_integer('ae_dim', 100, 'Dimension for AE.')
 flags.DEFINE_integer('seed', 3, 'Proportion of seeds, 3 means 30%')
 flags.DEFINE_string('out_dir', '', 'Output directory.')
+flags.DEFINE_string('dico_train', '', 'Train dict.')
+flags.DEFINE_string('dico_test', '', 'Test dict.')
 
 src_lang = FLAGS.lang.split('_')[-2]
 trg_lang = FLAGS.lang.split('_')[-1]
 # Load data
-adj, _, train, test = load_data_fixed_traintestset(FLAGS.lang, FLAGS.in_dir)
+adj, _, train, test = load_data_fixed_traintestset(FLAGS.in_dir, FLAGS.dico_train, FLAGS.dico_test)
 
 # Some preprocessing
 support = [preprocess_adj(adj)]
@@ -53,14 +55,7 @@ idx2word_src = get_idx2label('{}/idx2label_{}.txt'.format(FLAGS.in_dir, src_lang
 idx2word_trg = get_idx2label('{}/idx2label_{}.txt'.format(FLAGS.in_dir, trg_lang))
 
 # Define placeholders
-"""
-ph_ae = {
-    'support': [tf.sparse_placeholder(tf.float32) for _ in range(num_supports)],
-    'features': tf.sparse_placeholder(tf.float32), #tf.placeholder(tf.float32),
-    'dropout': tf.placeholder_with_default(0., shape=()),
-    'num_features_nonzero': tf.placeholder_with_default(0, shape=())
-}
-"""
+
 ph_se = {
     'support': [tf.sparse_placeholder(tf.float32) for _ in range(num_supports)],
     'features': tf.placeholder(tf.float32),

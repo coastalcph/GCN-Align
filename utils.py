@@ -267,7 +267,7 @@ def load_data_fixed_testset(dataset_str, in_dir='', ae=False):
     adj = get_weighted_adj(e, KG) # nx.adjacency_matrix(nx.from_dict_of_lists(get_dic_list(e, KG)))
     return adj, ae_input, train, test
 
-def load_data_fixed_traintestset(dataset_path, ae=False):
+def load_data_fixed_traintestset(dataset_path, dico_train, dico_test, ae=False):
     names = [['ent_ids_1', 'ent_ids_2'], ['training_attrs_1', 'training_attrs_2'], ['triples_1', 'triples_2'], ['ref_ent_ids']]
     for fns in names:
         for i in range(len(fns)):
@@ -279,8 +279,8 @@ def load_data_fixed_traintestset(dataset_path, ae=False):
     #illL = len(ILL)
     #np.random.shuffle(ILL)
     #train = np.array(ILL[:illL // 10 * FLAGS.seed])
-    train = load_train_set(dataset_path)
-    test = load_test_set(dataset_path)
+    train = load_train_set(dico_train)
+    test = load_test_set(dico_test)
     KG = loadfile(Ts[0], 3) + loadfile(Ts[1], 3)
     ent2id = get_ent2id([Es[0], Es[1]])
     if ae:
