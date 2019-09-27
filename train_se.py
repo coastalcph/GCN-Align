@@ -21,7 +21,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('lang', 'ja_en', 'Dataset string.')  # 'zh_en', 'ja_en', 'fr_en'
 flags.DEFINE_string('in_dir', 'data', 'Input directory.')
 flags.DEFINE_float('learning_rate', 20, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 1, 'Number of epochs to train.')
+flags.DEFINE_integer('epochs', 20, 'Number of epochs to train.')
 flags.DEFINE_float('dropout', 0., 'Dropout rate (1 - keep probability).')
 flags.DEFINE_float('gamma', 3.0, 'Hyper-parameter for margin based loss.')
 flags.DEFINE_integer('k', 5, 'Number of negative samples for each positive seed.')
@@ -29,14 +29,12 @@ flags.DEFINE_float('beta', 0.9, 'Weight for structure embeddings.')
 flags.DEFINE_integer('se_dim', 200, 'Dimension for SE.')
 flags.DEFINE_integer('ae_dim', 100, 'Dimension for AE.')
 flags.DEFINE_integer('seed', 3, 'Proportion of seeds, 3 means 30%')
-flags.DEFINE_string('labelfile_src', 'data/ja_en/idx2label_ja.txt', 'Mapping from id to label src lang')
-flags.DEFINE_string('labelfile_trg', 'data/ja_en/idx2label_en.txt', 'Mapping from id to label trg lang')
 flags.DEFINE_string('out_dir', '', 'Output directory.')
 
 src_lang = FLAGS.lang.split('_')[-2]
 trg_lang = FLAGS.lang.split('_')[-1]
 # Load data
-adj, _, train, test = load_data_fixed_testset(FLAGS.lang, FLAGS.in_dir, ae=False)
+adj, _, train, test = load_data_fixed_traintestset(FLAGS.lang, FLAGS.in_dir)
 
 # Some preprocessing
 support = [preprocess_adj(adj)]
@@ -44,6 +42,15 @@ num_supports = 1
 model_func = GCN_Align
 k = FLAGS.k
 #e = ae_input[2][0]
+
+def get_idx2label(fname):
+    with codecs.open(fname, 'r', 'utf-8') as f:
+        lines = f.readlines()
+    idx2label = {int(line.strip().split('\t')[0]): line.strip().split('\t')[1] for line in lines if len(line.split()) > 1}
+    return idx2label
+
+idx2word_src = get_idx2label('{}/idx2label_{}.txt'.format(FLAGS.in_dir, src_lang))
+idx2word_trg = get_idx2label('{}/idx2label_{}.txt'.format(FLAGS.in_dir, trg_lang))
 
 # Define placeholders
 """
@@ -130,18 +137,13 @@ def export_embs(lang, embs, idx2word):
         f.write('{} {}\n'.format(embs.shape[0], embs.shape[1]))
         for idx, word in idx2word.items():
             c += 1
-            if c > 20: break
+
             f.write("{} {}\n".format(word, " ".join('%.5f' % x for x in embs[idx, :])))
     f.close()
 
-def get_idx2label(fname):
-    with codecs.open(fname, 'r', 'utf-8') as f:
-        lines = f.readlines()
-    idx2label = {int(line.strip().split('\t')[0]): line.strip().split('\t')[1] for line in lines if len(line.split()) > 1}
-    return idx2label
 
-idx2word_src = get_idx2label(FLAGS.labelfile_src)
-idx2word_trg = get_idx2label(FLAGS.labelfile_trg)
+
+
 
 export_embs(src_lang, vec_se_test, idx2word_src)
 export_embs(trg_lang, vec_se_test, idx2word_trg)

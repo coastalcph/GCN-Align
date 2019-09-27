@@ -7,6 +7,7 @@ import sys
 import tensorflow as tf
 import math
 import os
+from term_context_matrix import *
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -266,9 +267,72 @@ def load_data_fixed_testset(dataset_str, in_dir='', ae=False):
     adj = get_weighted_adj(e, KG) # nx.adjacency_matrix(nx.from_dict_of_lists(get_dic_list(e, KG)))
     return adj, ae_input, train, test
 
+def load_data_fixed_traintestset(dataset_path, ae=False):
+    names = [['ent_ids_1', 'ent_ids_2'], ['training_attrs_1', 'training_attrs_2'], ['triples_1', 'triples_2'], ['ref_ent_ids']]
+    for fns in names:
+        for i in range(len(fns)):
+            fns[i] = os.path.join(dataset_path, fns[i])
+    Es, As, Ts, ill = names
+    #ill = ill[0]
+    e = len(set(loadfile(Es[0], 1)) | set(loadfile(Es[1], 1)))
+    #ILL = loadfile(ill, 2)
+    #illL = len(ILL)
+    #np.random.shuffle(ILL)
+    #train = np.array(ILL[:illL // 10 * FLAGS.seed])
+    train = load_train_set(dataset_path)
+    test = load_test_set(dataset_path)
+    KG = loadfile(Ts[0], 3) + loadfile(Ts[1], 3)
+    ent2id = get_ent2id([Es[0], Es[1]])
+    if ae:
+        attr = loadattr([As[0], As[1]], e, ent2id)
+        ae_input = get_ae_input(attr)
+    else:
+        ae_input=None
+    adj = get_weighted_adj(e, KG) # nx.adjacency_matrix(nx.from_dict_of_lists(get_dic_list(e, KG)))
+    return adj, ae_input, train, test
+
 
 def load_test_set(dataset_str):
     src = dataset_str.split('_')[-2]
     trg = dataset_str.split('_')[-1]
-    test = loadfile(os.path.join('data', dataset_str, 'test_pairs_{}_{}.txt'.format( src, trg)), 2)
+    test = loadfile(os.path.join( dataset_str, 'test_pairs_{}_{}.txt'.format( src, trg)), 2)
     return np.array(test)
+
+def load_train_set(dataset_str):
+    src = dataset_str.split('_')[-2]
+    trg = dataset_str.split('_')[-1]
+    train = loadfile(os.path.join( dataset_str, 'train_pairs_{}_{}.txt'.format( src, trg)), 2)
+    return np.array(train)
+
+
+
+def load_data_fixed_testset_ppmi_adj():
+    """
+    load two adjacency matrices that contain ppmi scores
+
+    :param dataset_str:
+    :param in_dir:
+    :param ae:
+    :return:
+    """
+    set_up_logging(exp_path='.')
+    lang1 = 'en'
+    lang2 = 'it'
+    fname1 = '/home/mareike/PycharmProjects/wikidata/code/code/wiki2svd/counts/pairs_en_wiki_100000.txt'
+    fname2 = '/home/mareike/PycharmProjects/wikidata/code/code/wiki2svd/counts/pairs_it_lex_docs_NER.100000.txt'
+
+    fname_train = '/home/mareike/PycharmProjects/wikidata/code/code/wiki2svd/counts/en_it_train.txt'
+    fname_test = '/home/mareike/PycharmProjects/wikidata/code/code/wiki2svd/counts/en_it_test.txt'
+
+    pairs1 = load_counts(fname1, lang1)
+    pairs2 = load_counts(fname2, lang2)
+
+    ttm, trg2idx = build_term_context_matrix(pairs1, pairs2, neg=5, cds=1)
+
+    print(len(trg2idx))
+    for key, val in trg2idx.items():
+        print(key, val)
+
+    train_pairs = dict2idx(fname_train, trg2idx, lang1, lang2)
+    test_pairs = dict2idx(fname_test, trg2idx, lang1, lang2)
+    return ttm, train_pairs, test_pairs, trg2idx
