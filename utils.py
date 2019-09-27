@@ -292,16 +292,12 @@ def load_data_fixed_traintestset(dataset_path, dico_train, dico_test, ae=False):
     return adj, ae_input, train, test
 
 
-def load_test_set(dataset_str):
-    src = dataset_str.split('_')[-2]
-    trg = dataset_str.split('_')[-1]
-    test = loadfile(os.path.join( dataset_str, 'test_pairs_{}_{}.txt'.format( src, trg)), 2)
+def load_test_set(dico_test):
+    test = loadfile(dico_test, 2)
     return np.array(test)
 
-def load_train_set(dataset_str):
-    src = dataset_str.split('_')[-2]
-    trg = dataset_str.split('_')[-1]
-    train = loadfile(os.path.join( dataset_str, 'train_pairs_{}_{}.txt'.format( src, trg)), 2)
+def load_train_set(dico_train):
+    train = loadfile(dico_train, 2)
     return np.array(train)
 
 
