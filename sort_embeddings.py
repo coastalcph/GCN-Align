@@ -18,8 +18,13 @@ def write_file(fname, data):
 
 
 def sort_embs(exp_path, fname, seeds_src):
-    embs_src = {line.split()[0]: (i, line) for i, line in
-                enumerate(read_file(fname)) if len(line.split()) > 2}
+    embs_src = {}
+    for i, line in enumerate(enumerate(read_file(fname))):
+        if line.split() > 2:
+            if line.split()[0] not in embs_src:
+                embs_src[line.split()[0]] = (i, line)
+            else: print("{} is present multiple times...".format(line.split()[0]))
+
     out = []
     for elm in seeds_src:
         out.append(embs_src[elm][1])
@@ -32,8 +37,8 @@ def sort_embs(exp_path, fname, seeds_src):
 
 def main(args):
     seed_pairs = read_file(args.seed_dict)
-    seeds_src = set([line.split(' ')[0] for line in seed_pairs])
-    seeds_trg = set([line.split(' ')[1] for line in seed_pairs])
+    seeds_src = set([line.split('\t')[0] for line in seed_pairs])
+    seeds_trg = set([line.split('\t')[1] for line in seed_pairs])
     print('Sorting ff src')
     sort_embs(args.exp_path, '{}/wiki.{}.vec'.format(args.ff_path, args.src_lang), seeds_src)
     print('Sorting ff trg')
